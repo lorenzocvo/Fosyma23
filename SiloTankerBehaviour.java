@@ -105,147 +105,7 @@ public class SiloTankerBehaviour extends TickerBehaviour {
 		this.tresorloc = tresloc;
 		this.tresorvalue = tresval;
 		this.agentscapacity = agentcapa;
-		//trier les agents en fonction de leur capacité
-		/*
-		List<Integer> ordre = new ArrayList<>();
 		
-		while(ordre.size()!=this.agentscapacity.size()) {
-			Integer tmp = Integer.MAX_VALUE;
-			Integer itmp =-1;
-			for(int i=0;i<this.agentscapacity.size();i++) {
-				
-				if(this.agentscapacity.get(i).getRight()<tmp && !ordre.contains(i)) {
-					
-					itmp = i;
-					tmp = this.agentscapacity.get(i).getRight();
-					
-				}
-				
-				
-			}
-			ordre.add(0, itmp);
-			
-		}
-		
-		List<Couple<String,Integer>> newagents = new ArrayList<>();
-		
-		
-		for(int i=0;i<ordre.size();i++) {
-			
-			newagents.add(this.agentscapacity.get(ordre.get(i)));
-			
-			
-		}
-		System.out.println("capacity "+this.agentscapacity.toString());
-		this.agentscapacity = newagents;
-		
-		
-		
-		//on attribue coffre par coffre (si le dernier agent peut ouvrir le dernier coffre on lui
-		//donne, sinon on regarde l'avant dernier etc...
-		//si aucun agent ne peut l'ouvrir alors on regarde qui peut y arriver en 2 coups etc...
-		//s'il y a des agents qui n'ont pas de coffres attribués, soit ils se baladent de coffres
-		//en coffres pour vérifier si personne n'a besoin d'aide, sinon ils bloquent un spot 
-		//pour empecher le wumpus de venir
-		
-		
-		//initialiser agentcapacity en fonction de l'ordre croissant
-		
-		System.out.println("capacity "+this.agentscapacity.toString());
-		
-		
-		for(int i = 0;i<this.agentscapacity.size();i++) {
-			
-			List <String> tmp = new ArrayList<>();
-			this.everypath.add(new Couple(this.agentscapacity.get(i).getLeft(),tmp));
-		}
-		
-		
-		
-		for(int i=0;i<this.tresorloc.size();i++) {
-			
-			
-			
-			//mettre une variable pour while coffre non attribué
-			int z = 1;
-			
-			
-			
-			//attention à ne pas tout attribuer au même agent
-			while(z!=0) {
-				for(int j = 0;j<this.agentscapacity.size();j++) {
-					
-					
-					System.out.println(this.tresorvalue.get(i));
-					System.out.println(this.agentscapacity.get(j).getRight());
-					if(this.tresorvalue.get(i)/z<this.agentscapacity.get(j).getRight()) {
-						
-						//peut etre améliorer ça (ou pas)
-						this.everypath.get(j).getRight().add(this.tresorloc.get(i));
-						
-						
-						z = 0;
-						break;
-						
-					}
-					
-					
-				}
-				
-				if( z!=0) {
-					
-					z++;
-				}
-			}
-			
-			
-		}
-		
-		
-		//on fait le message spécial et on l'envoie
-		
-		
-		ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-		msg.setProtocol("LAUNCH-RECOLTE");
-		msg.setSender(this.myAgent.getAID());
-		
-		String contenu ="";
-		
-		for(int i =0; i<this.everypath.size();i++) {
-			
-			//nom de l'agent
-			contenu = contenu + this.everypath.get(i).getLeft() + ",";
-			
-			
-			for(int j=0;j<this.everypath.get(i).getRight().size();j++) {
-				
-				//chaque location de trésor allouée séparée par une virgule
-				contenu = contenu + this.everypath.get(i).getRight().get(j) + ",";
-				
-				
-			}
-			
-			contenu = contenu.substring(0, contenu.length()-1);
-			contenu = contenu + "/";
-			
-			
-		}
-		
-		msg.setContent(contenu);
-		
-		for (String agentName : this.list_agentNames) {
-			
-			if(!this.talking.contains(agentName)) {
-				
-				msg.addReceiver(new AID(agentName,AID.ISLOCALNAME));
-			}
-		}
-		
-		((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
-		System.out.println(msg);
-		
-		//System.out.println(this.myAgent.getBehavioursCnt());
-		*/
 		
 	}
 
@@ -297,9 +157,8 @@ public class SiloTankerBehaviour extends TickerBehaviour {
 			//on attribue coffre par coffre (si le dernier agent peut ouvrir le dernier coffre on lui
 			//donne, sinon on regarde l'avant dernier etc...
 			//si aucun agent ne peut l'ouvrir alors on regarde qui peut y arriver en 2 coups etc...
-			//s'il y a des agents qui n'ont pas de coffres attribués, soit ils se baladent de coffres
-			//en coffres pour vérifier si personne n'a besoin d'aide, sinon ils bloquent un spot 
-			//pour empecher le wumpus de venir
+			//s'il y a des agents qui n'ont pas de coffres attribués, ils se baladent de coffres
+			//en coffres pour vérifier si personne n'a besoin d'aide
 			
 			
 			//initialiser agentcapacity en fonction de l'ordre croissant
@@ -317,14 +176,9 @@ public class SiloTankerBehaviour extends TickerBehaviour {
 			
 			for(int i=0;i<this.tresorloc.size();i++) {
 				
-				
-				
-				//mettre une variable pour while coffre non attribué
 				int z = 1;
 				
 				
-				
-				//attention à ne pas tout attribuer au même agent
 				while(z!=0) {
 					for(int j = 0;j<this.agentscapacity.size();j++) {
 						
@@ -334,7 +188,7 @@ public class SiloTankerBehaviour extends TickerBehaviour {
 						
 						if(this.tresorvalue.get(i)/z<=this.agentscapacity.get(j).getRight()) {
 							
-							//peut etre améliorer ça (ou pas)
+							
 							this.everypath.get(j).getRight().add(this.tresorloc.get(i));
 							
 							
@@ -355,9 +209,6 @@ public class SiloTankerBehaviour extends TickerBehaviour {
 			}
 			
 			
-			//on fait le message spécial et on l'envoie
-			
-			
 			ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 			msg.setProtocol("LAUNCH-RECOLTE");
 			msg.setSender(this.myAgent.getAID());
@@ -372,7 +223,6 @@ public class SiloTankerBehaviour extends TickerBehaviour {
 				
 				for(int j=0;j<this.everypath.get(i).getRight().size();j++) {
 					
-					//chaque location de trésor allouée séparée par une virgule
 					contenu = contenu + this.everypath.get(i).getRight().get(j) + ",";
 					
 					
@@ -401,10 +251,6 @@ public class SiloTankerBehaviour extends TickerBehaviour {
 		}
 		
 		
-		//((AbstractDedaleAgent)this.myAgent).loadEntityCaracteristics(STATE_READY, STATE_BLOCKED);
-		
-		//ReceiveTreasureTankerBehaviour.PROTOCOL_TANKER;
-		
 		
 		
 		Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
@@ -416,63 +262,6 @@ public class SiloTankerBehaviour extends TickerBehaviour {
 		
 		
 		if (myPosition!=null){
-			//List of observable from the agent's current position
-			//List<Couple<Location,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
-
-			/**
-			 * Just added here to let you see what the agent is doing, otherwise he will be too quick
-			 */
-			/*
-			try {
-				this.myAgent.doWait(10);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-
-
-			
-			
-				/*
-			MessageTemplate template= 
-					MessageTemplate.and(
-							MessageTemplate.MatchProtocol(PROTOCOL_TANKER),
-							MessageTemplate.MatchPerformative(ACLMessage.REQUEST)		
-							);
-
-			//I'm waiting for a message from a collector
-			ACLMessage msg=this.myAgent.receive(template);
-			//Couple<Observation,Integer> c=null;
-			List<Couple<Observation, Integer>>c=null;
-			if (msg!=null){
-				//Debug.warning("Tanker agent - Message received: "+msg.toString());
-				try {
-					c=(List<Couple<Observation, Integer>>) msg.getContentObject();
-				} catch (UnreadableException e) {
-					Debug.error("Tanker receiving non Deserializable value");
-					e.printStackTrace();
-				}
-				c.forEach(x -> {
-					Integer i=this.ec.getBackPackCapacity(x.getLeft())-this.aoe.getBackPackUsedSpace((x.getLeft()));
-					if (i>0){
-						//	add the received value in the agentTanker backpack
-						this.aoe.add2TreasureValue(x.getLeft(), x.getRight());
-						//Debug.warning(c.getLeft()+" - There is now "+this.backPack.get(c.getLeft()) +" in the backPack");
-					}else{
-						this.aoe.add2TreasureValue(x.getLeft(), i);//the remaining is lost
-					}
-				});
-				//Integer i=this.ec.getBackPackCapacity(c.getLeft())-this.aoe.getBackPackUsedSpace((c.getLeft()));
-				
-				ACLMessage resp=msg.createReply();
-				resp.setPerformative(ACLMessage.AGREE);
-				this.myAgent.send(resp);
-			}else{
-				block();
-			}
-				
-			*/
-		
-			
 			
 			if(this.talking.size()>0) {
 				
@@ -490,21 +279,11 @@ public class SiloTankerBehaviour extends TickerBehaviour {
 			
 			
 			
-			//this.myAgent.addBehaviour((new ReceiveTreasureTankerBehaviour(((AbstractDedaleAgent)this.myAgent), new AgentObservableElement(this.myAgent.getLocalName()),   )));
-			//((AbstractDedaleAgent)this.myAgent).removeBehaviour(this);
-			
-			//ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-			
-			//((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
-			
-			
-			
-			
-			
 
 		}
 	}
 }
+
 /*
 	@Override
 	public boolean done() {

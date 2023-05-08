@@ -70,8 +70,7 @@ public class SiloBehaviour extends SimpleBehaviour {
 	private Integer z = 0;
 	
 	private List<String> arrived = new ArrayList<>(); //agents arrivés au rassemblement
-	//en content de message d'arrivée nom,lockpicking,backpack/ emplacement des trésors/valeur des trésors
-
+	
 	private Boolean first = true;
 	
 	List<Couple<String,Integer>>agentcapa = new ArrayList<>();
@@ -97,7 +96,6 @@ public class SiloBehaviour extends SimpleBehaviour {
 
 		if(this.myMap==null) {
 			this.myMap= new MapRepresentation();
-			//this.myAgent.addBehaviour(new ShareMapBehaviour(this.myAgent,500,this.myMap,list_agentNames));
 		}
 		
 		Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
@@ -106,13 +104,8 @@ public class SiloBehaviour extends SimpleBehaviour {
 			this.start = myPosition;
 		}
 		
-		
-
-		
-		
 
 		if (myPosition!=null){
-			//List of observable from the agent's current position
 			List<Couple<Location,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
 
 			/**
@@ -133,13 +126,9 @@ public class SiloBehaviour extends SimpleBehaviour {
 			
 			
 			if (msgReceived == null) {
-			
-				
-				//on reprend la marche
-				//on enlève ce behaviour
+
 				if(this.z==1) {
 					this.z=0;
-					//this.move.set(0, true);
 				}else {
 					this.z=1;
 				}
@@ -148,7 +137,6 @@ public class SiloBehaviour extends SimpleBehaviour {
 				
 				
 				this.z = 0;
-				
 				
 				if(msgReceived.getProtocol()=="SHARE-MAP-SILO" && !this.talking.contains(msgReceived.getSender().getLocalName())) {
 					
@@ -171,7 +159,6 @@ public class SiloBehaviour extends SimpleBehaviour {
 				else if(msgReceived.getProtocol()=="ASK-ARRIVED") {
 					
 					ACLMessage msg = msgReceived.createReply();
-					//this.arrived.add(msgReceived.getSender().getLocalName());
 					if(this.first) {
 						msg.setProtocol("FIRST-ARRIVED");
 						this.first = false;
@@ -197,7 +184,6 @@ public class SiloBehaviour extends SimpleBehaviour {
 					this.myMap.mergeMap(sgreceived);
 					
 					((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
-					
 					
 					
 				}
@@ -261,7 +247,7 @@ public class SiloBehaviour extends SimpleBehaviour {
 			}
 				
 			
-			//mettre capa à la place
+			
 			if(this.agentcapa.size()==this.list_agentNames.size()-1) {
 				
 				System.out.println("C4EST BON POUR VOUS");
@@ -297,7 +283,7 @@ public class SiloBehaviour extends SimpleBehaviour {
 				msg.setSender(this.myAgent.getAID());
 				
 				msg.setContent(this.start.getLocationId());
-				//mettre quelque chose dans le content(liste trésors)? path?
+				
 				
 				for (String agentName : this.list_agentNames) {
 					
@@ -313,12 +299,10 @@ public class SiloBehaviour extends SimpleBehaviour {
 			
 			
 			}
-			//rajouter du mouvement et le fait de l'ajouter à la connaissance de la map
-			
 			
 
 		}
-		//System.out.println("arrived :"+this.arrived.toString());
+		
 	}
 
 	@Override

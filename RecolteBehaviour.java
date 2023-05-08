@@ -76,18 +76,16 @@ public class RecolteBehaviour extends SimpleBehaviour {
 	
 	private int tick = 0;
 	
-	//private Location objectif;
-	
 	//les agents envoyés pour attendre sur un trésor
 	private Boolean recolte = true;
 	
-	//mettre variable mission?
-	//mission donnée par le silo, il revient le voir après l'avoir accomplie
-	
+	private Boolean libre = false;
 	
 	private String fullpath;
 	
 	private List<String> objectif = new ArrayList<>();
+	
+	private Integer compteur = 0;
 	
 /**
  * 
@@ -107,17 +105,13 @@ public class RecolteBehaviour extends SimpleBehaviour {
 		this.fullpath = everypath;
 		
 		//traitement du fullpath
-		//List<String> full = new ArrayList<String>(Arrays.asList(msgReceived2.getContent().split("/")));
 		List<String> traitement = new ArrayList<String>(Arrays.asList(this.fullpath.split("/")));
 		
-		//System.out.println("traitement "+traitement.toString());
+		
 		for(int i =0;i<traitement.size();i++) {
 			
 			List<String> tmp = new ArrayList<String>(Arrays.asList(traitement.get(i).split(",")));
 			
-			//System.out.println("nom = "+tmp.get(0)+"/"+this.myAgent.getLocalName());
-			//System.out.println(tmp.get(0)==this.myAgent.getLocalName());
-			//System.out.println(StringUtils.difference(tmp.get(0), this.myAgent.getLocalName()));
 			if(tmp.get(0).equals(this.myAgent.getLocalName())) {
 				
 				this.objectif = tmp;
@@ -130,13 +124,24 @@ public class RecolteBehaviour extends SimpleBehaviour {
 			
 		}
 		
-		//System.out.println(this.objectif);
+		
 		if(this.objectif.size()>0) {
 			this.path = this.myMap.getShortestPath(myPosition.toString(), this.objectif.get(0));
 		}else {
-			//si le path est null, peut etre mettre une variable pour
-			//faire le tour des coffres et aider les agents à les ouvrir si besoin
-			this.path = null;
+			
+			for(int i =0;i<traitement.size();i++) {
+				
+				List<String> tmp = new ArrayList<String>(Arrays.asList(traitement.get(i).split(",")));
+					
+				this.objectif = tmp;
+				this.objectif.remove(0);
+				break;
+			
+			}
+			
+			
+			this.libre = true;
+			this.path = this.myMap.getShortestPath(myPosition.toString(), this.objectif.get(0));
 		}
 		
 	}
@@ -144,13 +149,16 @@ public class RecolteBehaviour extends SimpleBehaviour {
 	@Override
 	public void action() {
 		
-		//attention à ne pas couper en pleine communication
-		this.tick++;
-		
-		//changer les déplacements (ajouter déplacement random si coffre, sinon attendre)
-		//et attendre en cas de blocage
 		Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
 		
+		
+		if(this.tick>=10) {
+			this.myAgent.doDelete();
+		}
+		
+		if(this.compteur==this.objectif.size()) {
+			this.compteur = 0;
+		}
 		
 		
 		try {
@@ -158,12 +166,6 @@ public class RecolteBehaviour extends SimpleBehaviour {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		//optimiser : d'abord on regarde si on a reçu, puis on bouge, puis on envoie
-		
-		
-		//autre behaviour de communication pour sortir de blocages complexes
-
 		
 
 		List<Couple<Location,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
@@ -175,13 +177,10 @@ public class RecolteBehaviour extends SimpleBehaviour {
 			
 			Couple<Location, List<Couple<Observation, Integer>>> iter2 = iter.next();
 			Location accessibleNode=iter2.getLeft();
-			//System.out.println(iter2);
-			
-			//Location accessibleNode=iter.next().getLeft();
 			boolean isNewNode=this.myMap.addNewNode(accessibleNode.getLocationId());
 			
 			
-			//the node may exist, but not necessarily the edge
+			
 			if (myPosition.getLocationId()!=accessibleNode.getLocationId()) {
 				this.myMap.addEdge(myPosition.getLocationId(), accessibleNode.getLocationId());
 				nextto.add(accessibleNode);
@@ -196,8 +195,6 @@ public class RecolteBehaviour extends SimpleBehaviour {
 		
 		if(!myPosition.toString().equals(this.objectif.get(0))  ) {
 			
-			//if path.size()?
-			
 			if(this.path.size()==0) {
 				
 				this.path = this.myMap.getShortestPath(myPosition.toString(), this.objectif.get(0));
@@ -207,7 +204,6 @@ public class RecolteBehaviour extends SimpleBehaviour {
 			if (nextNodeId==null){
 
 				nextNodeId = iter.next().getLeft().getLocationId();
-				//System.out.println(this.myAgent.getLocalName()+"-- list= "+this.myMap.getOpenNodes()+"| nextNode: "+nextNode);
 			}
 			
 			
@@ -228,14 +224,21 @@ public class RecolteBehaviour extends SimpleBehaviour {
 					moveid = r.nextInt(nextto.size());
 					nextNodeId = nextto.get(moveid).getLocationId();
 				}
-				myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
-				this.path = this.myMap.getShortestPath(myPosition.toString(), this.objectif.get(0));
+				Location myPosition2=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
+				this.path = this.myMap.getShortestPath(myPosition2.toString(), this.objectif.get(0));
+				
+				if(myPosition.equals(myPosition2)) {
+					
+					this.tick++;
+				}else {
+					this.tick = 0;
+				}
 				
 			}
 			
 			
 			
-			if(!this.recolte && this.path.size()==1) {
+			if(!this.recolte && this.path.size()==1 && !this.libre) {
 				
 				System.out.println("J'aurais essayé");
 				System.out.println(this.list_agentNames);
@@ -246,18 +249,25 @@ public class RecolteBehaviour extends SimpleBehaviour {
 					System.out.println(test);
 					 test = ((AbstractDedaleAgent)this.myAgent).emptyMyBackPack(this.list_agentNames.get(this.list_agentNames.size()-1));
 				}
-				//System.out.println(((AbstractDedaleAgent)this.myAgent).emptyMyBackPack(this.list_agentNames.get(this.list_agentNames.size()-1))); 
 					
 				
 				this.objectif.remove(0);
 				this.recolte=true;
-				//this.path = this.myMap.getShortestPath(myPosition.toString(), this.objectif.get(0));
+			}
+			
+			if(this.libre && this.path.size() == 1) {
+				
+				this.compteur++;
+				this.path = this.myMap.getShortestPath(myPosition.toString(), this.objectif.get(this.compteur));
+				
 			}
 		
 		
 		}else {
 			
 			if(this.objectif.size()>0) {
+				
+				//attendre si on arrive pas à ouvrir
 				((AbstractDedaleAgent)this.myAgent).openLock(Observation.GOLD);
 				((AbstractDedaleAgent)this.myAgent).pick();
 				
@@ -281,24 +291,21 @@ public class RecolteBehaviour extends SimpleBehaviour {
 				
 				
 			}else {
-				
+				if(this.libre) {
+					
+					this.compteur++;
+					
+				}else {
+					this.myAgent.doDelete();
+				}
 				//on a terminé
 				
 				
 			}
 			
-			
-			
-			
-			
 		}
 		
-		
-		
-		
-		
 
-		
 	}
 	
 

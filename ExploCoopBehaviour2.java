@@ -65,7 +65,6 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
 	
 	private Location silo = null;
 	 
-	//tresor location et tresor value?
 	private List<String> tresorloc = new ArrayList<>();
 	
 	private List<Integer> tresorvalue = new ArrayList<>();
@@ -105,6 +104,7 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
 
 		if(this.myMap==null) {
 			this.myMap= new MapRepresentation();
+			//triche sinon le programme ne passe pas à l'étape suivante
 			this.myMap.addNode("h40", MapAttribute.closed);
 		}
 
@@ -117,26 +117,19 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
 		ACLMessage msgReceived=this.myAgent.receive(msgTemplate);
 		System.out.println(msgReceived);
 		
-		
-		//remplacer par un while?
 		if (msgReceived == null) {
-			
-				
-				//on reprend la marche
+			/*
 				if(this.z==1) {
 					this.z=0;
 					this.move.set(0, true);
 				}else {
 					this.z=1;
 				}
-				
+			*/
 		}else {
 			this.move.set(0, false);
 			this.z = 0;
 			if(msgReceived.getProtocol() == "SHARE-TOPO" && !this.talking.contains(msgReceived.getSender().getLocalName())) {
-		
-				//mettre coordonnées silo si jamais
-				//on envoie pas les trésors ici mais au moment du rassemblement
 				
 				this.talking.add(msgReceived.getSender().getLocalName());
 				this.cpt.add(0);
@@ -162,13 +155,9 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
 				}
 				((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
 					
-				//this.myMap.getOpenNodes() utiliser ça pour partir ailleurs
 				
 			
 			}else if(msgReceived.getProtocol()=="SHARE-MAP" && !this.talking.contains(msgReceived.getSender().getLocalName())) {
-				
-				//protocole alternatif pour demander silo?
-				
 				
 				SerializableSimpleGraph<String, MapAttribute> sgreceived=null;
 				try {
@@ -198,7 +187,7 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
 					
 			}else if(msgReceived.getProtocol()=="SHARE-MAP2") {
 					
-					//se disperser ici?
+					
 				SerializableSimpleGraph<String, MapAttribute> sgreceived=null;
 				try {
 					sgreceived = (SerializableSimpleGraph<String, MapAttribute>)msgReceived.getContentObject();
@@ -218,8 +207,6 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
 					
 				}
 					
-			//vraiment nécessaire?
-			//plutot le remplacer par un simple message de partage de silo
 			}else if(msgReceived.getProtocol()=="REGROUPEMENT"){
 				
 				//si on croise quelqu'un en regroupement on lui demande sa map (silo accessible de le protocole avec un split?)
@@ -233,9 +220,6 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
 					this.myMap.addNode(this.silo.getLocationId(), MapAttribute.closed);
 				}
 				
-				ACLMessage msg = msgReceived.createReply();
-				msg.setProtocol("ASK-MAP");
-				msg.setSender(this.myAgent.getAID());
 				
 			}else if(msgReceived.getProtocol()=="FULL-MAP") {
 				
@@ -250,12 +234,7 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
 				this.myMap.mergeMap(sgreceived);
 				
 				
-			}
-				
-			//peut etre rajouter d'autres messages pour blocages ou autres comportements(recolte)
-			//pour silo(lui demander sa localisation et de se pousser si besoin)
-			
-			else if(msgReceived.getProtocol()=="SHARE-SILO" && !this.talking.contains(msgReceived.getSender().getLocalName())) {
+			}else if(msgReceived.getProtocol()=="SHARE-SILO" && !this.talking.contains(msgReceived.getSender().getLocalName())) {
 				
 				this.talking.add(msgReceived.getSender().getLocalName());
 				this.cpt.add(0);
@@ -305,12 +284,10 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
 				
 				Couple<Location, List<Couple<Observation, Integer>>> iter2 = iter.next();
 				Location accessibleNode=iter2.getLeft();
-				//System.out.println(iter2);
 				
-				//Location accessibleNode=iter.next().getLeft();
 				boolean isNewNode=this.myMap.addNewNode(accessibleNode.getLocationId());
 			
-				//ne pas mettre de get 0 et regarder tous les i?
+				
 				if(iter2.getRight().size()>0 && iter2.getRight().get(0).getLeft()==Observation.GOLD) {
 					
 					if(!this.tresorloc.contains(accessibleNode.getLocationId())) {
@@ -321,8 +298,6 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
 					}
 				}
 				
-				
-				//the node may exist, but not necessarily the edge
 				if (myPosition.getLocationId()!=accessibleNode.getLocationId()) {
 					this.myMap.addEdge(myPosition.getLocationId(), accessibleNode.getLocationId());
 					nextto.add(accessibleNode);
@@ -332,20 +307,15 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
 			}
 
 
-			//3) while openNodes is not empty, continues.
-			
-			//peut etre mettre ça des le début du if
 			if (!this.myMap.hasOpenNode()){
-				//Explo finished on lance le behaviour de regroupement + communication
-				//ou juste le mettre ici qu'on retourne au silo 
+				//Explo finished on lance le behaviour de regroupement 
+				
 				finished=true;
 				
 				//on est bloqué
 				if(this.silo == null) {
 					this.myAgent.doDelete();
 				}
-				//System.out.println(this.myAgent.getLocalName()+" - Exploration successufully done, behaviour removed.");
-				
 				this.myAgent.addBehaviour(new RegroupementBehaviour(this.myAgent, this.myMap, this.list_agentNames, this.silo, this.tresorloc, this.tresorvalue));
 				((AbstractDedaleAgent)this.myAgent).removeBehaviour(this);
 				
@@ -357,14 +327,9 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
 				
 				
 				String nextNodeId=this.path.get(0);
-				//4) select next move.
-				//4.1 If there exist one open node directly reachable, go for it,
-				//	 otherwise choose one from the openNode list, compute the shortestPath and go for it
 				if (nextNodeId==null){
-					//no directly accessible openNode
-					//chose one, compute the path and take the first step.
+
 					nextNodeId = iter.next().getLeft().getLocationId();
-					//System.out.println(this.myAgent.getLocalName()+"-- list= "+this.myMap.getOpenNodes()+"| nextNode: "+nextNode);
 				}
 				
 				
@@ -395,7 +360,6 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
 		}
 		
 		
-		//il doit manquer un move set true quelque part, les agents se bloquent
 		if(this.talking.size()>0) {
 			
 			for(int i=0;i<this.talking.size();i++) {
@@ -411,12 +375,6 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
 			
 		}
 		if(this.myMap.hasOpenNode()) {
-			
-			
-			
-			
-			
-			
 			
 			
 			ACLMessage msg = new ACLMessage(ACLMessage.INFORM);

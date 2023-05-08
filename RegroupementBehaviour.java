@@ -127,21 +127,15 @@ public class RegroupementBehaviour extends SimpleBehaviour {
 		ACLMessage msgReceived=this.myAgent.receive(msgTemplate);
 		
 		
-		//autre behaviour de communication pour sortir de blocages complexes
+		
 		
 		if(msgReceived==null) {
 			
-		}
-		
-		//donner le silo
-		//réfléchir à mieux organiser les lignes récurrentes (talking,cpt, envoi message)
-		//pas sur de l'utilité de ces différents protocoles alors que ce sont des messages de base
-		else if (!this.talking.contains(msgReceived.getSender().getLocalName()) && (msgReceived.getProtocol()=="SHARE-TOPO" || msgReceived.getProtocol()=="ASK-MAP" ) ) {
+		}else if (!this.talking.contains(msgReceived.getSender().getLocalName()) && (msgReceived.getProtocol()=="SHARE-TOPO" || msgReceived.getProtocol()=="ASK-MAP" ) ) {
 			System.out.println(msgReceived);
-			//talking couple agent, temps depuis dernière communication?
+		
 			this.talking.add(msgReceived.getSender().getLocalName());
 			this.cpt.add(0);
-			//this.myAgent.addBehaviour(new TalkingCoopBehaviour(this.myAgent, this.myMap,msgReceived, this.talking, this.move));
 			
 			
 			ACLMessage msg = msgReceived.createReply();
@@ -159,10 +153,6 @@ public class RegroupementBehaviour extends SimpleBehaviour {
 			((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
 			
 			
-			
-			
-			
-			
 		}else if(msgReceived.getProtocol()=="ASK-ARRIVED" && !this.move.get(0)) {
 			
 			ACLMessage msg = msgReceived.createReply();
@@ -173,19 +163,10 @@ public class RegroupementBehaviour extends SimpleBehaviour {
 			
 		}else if (msgReceived.getProtocol()=="ARRIVED"  ) {
 			
-			
-			//l'envoyer à tout le monde en attendant la validation du silo
-			
-			//revoir la partie informations, les agents vont se l'envoyer en boucle
-			//une nouvelle liste talking spéciale pour ça?
-			
-			//on ajustera les this talkinginfo avec un split quand on aura ajouté les infos du message
 			this.move.set(0, false);
 			ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 			msg.setProtocol("INFORMATIONS");
 			msg.setSender(this.myAgent.getAID());
-			
-			
 			
 			String message = "";
 			message = message + this.myAgent.getLocalName() + "/" + ((AbstractDedaleAgent)this.myAgent).getBackPackFreeSpace().get(0).getRight().toString() + "/";
@@ -208,7 +189,7 @@ public class RegroupementBehaviour extends SimpleBehaviour {
 			message = message.substring(0, message.length()-1);
 			
 			msg.setContent(message);
-			//msg.setContent(this.myAgent.getLocalName());
+			
 			for (String agentName : this.list_agentNames) {
 				
 				
@@ -274,11 +255,15 @@ public class RegroupementBehaviour extends SimpleBehaviour {
 		}else if(msgReceived.getProtocol()=="LAUNCH-RECOLTE") {
 			
 			
+			ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+			msg.setProtocol("LAUNCH-RECOLTE");
+			msg.setSender(this.myAgent.getAID());
+			msg.setContent(msgReceived.getContent());
+			((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
 			
 			System.out.println(msgReceived.getContent());
 			
 			finished=true;
-			//System.out.println(this.myAgent.getLocalName()+" - Exploration successufully done, behaviour removed.");
 			
 			this.myAgent.addBehaviour(new RecolteBehaviour(this.myAgent, this.myMap, this.list_agentNames,msgReceived.getContent(),this.silo));
 			((AbstractDedaleAgent)this.myAgent).removeBehaviour(this);
@@ -296,8 +281,7 @@ public class RegroupementBehaviour extends SimpleBehaviour {
 					this.path.remove(0);
 				}else {
 					
-					//demander si je suis arrivé, si oui on passe en mode move false
-					//mettre un z pour signifier qu'on attend un message ou attendre
+
 					System.out.println("Je suis arrivé?");
 					ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 					msg.setProtocol("ASK-ARRIVED");
@@ -305,41 +289,25 @@ public class RegroupementBehaviour extends SimpleBehaviour {
 					msg.setContent("test");
 					
 					for (String agentName : this.list_agentNames) {
-						//peut etre enlever ça ici
+						
 						if(!this.talking.contains(agentName)) {
 							
 							msg.addReceiver(new AID(agentName,AID.ISLOCALNAME));
 						}
 					}
 					
-					//créer un bug
-					//this.move.set(0, false);
 					((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
 				}
 				
 			}else {
 			
-				//peut etre n'en garder qu'un seul
 				this.move.set(0,false);
 				this.arrived = true;
 				
 				
 			}
 			
-			
-			
-			//protocole de communication
-			//regroupement(envoyer silo) (nécessaire?)
-			
-			
-			
-		}else {
-			
-			//protocole de réponse uniquement ou alors on envoie toujours un message par pas
-			
-			
 		}
-		
 		
 		
 	}
