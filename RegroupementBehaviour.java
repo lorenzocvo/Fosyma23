@@ -116,7 +116,7 @@ public class RegroupementBehaviour extends SimpleBehaviour {
 		
 		
 		try {
-			this.myAgent.doWait(10);
+			this.myAgent.doWait(1000);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

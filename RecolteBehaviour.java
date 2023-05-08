@@ -147,7 +147,8 @@ public class RecolteBehaviour extends SimpleBehaviour {
 		//attention à ne pas couper en pleine communication
 		this.tick++;
 		
-		
+		//changer les déplacements (ajouter déplacement random si coffre, sinon attendre)
+		//et attendre en cas de blocage
 		Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
 		
 		

@@ -97,7 +97,7 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
 		this.tick++;
 		
 		try {
-			this.myAgent.doWait(10);
+			this.myAgent.doWait(1000);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -211,10 +211,12 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
 				
 				//on se sépare
 				Random rand = new Random();
-				
-				Integer index = rand.nextInt(this.myMap.getOpenNodes().size());
-				this.myMap.getShortestPath(myPosition.getLocationId(),this.myMap.getOpenNodes().get(index));
+				try {
+					Integer index = rand.nextInt(this.myMap.getOpenNodes().size());
+					this.myMap.getShortestPath(myPosition.getLocationId(),this.myMap.getOpenNodes().get(index));
+				}catch(Exception e) {
 					
+				}
 					
 			//vraiment nécessaire?
 			//plutot le remplacer par un simple message de partage de silo
@@ -337,6 +339,11 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
 				//Explo finished on lance le behaviour de regroupement + communication
 				//ou juste le mettre ici qu'on retourne au silo 
 				finished=true;
+				
+				//on est bloqué
+				if(this.silo == null) {
+					this.myAgent.doDelete();
+				}
 				//System.out.println(this.myAgent.getLocalName()+" - Exploration successufully done, behaviour removed.");
 				
 				this.myAgent.addBehaviour(new RegroupementBehaviour(this.myAgent, this.myMap, this.list_agentNames, this.silo, this.tresorloc, this.tresorvalue));
@@ -395,7 +402,7 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
 				
 				
 				this.cpt.set(i, this.cpt.get(i)+1);
-				if(this.cpt.get(i)>10) {
+				if(this.cpt.get(i)>30) {
 					this.talking.remove(i);
 					this.cpt.remove(i);
 				}
@@ -404,6 +411,13 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
 			
 		}
 		if(this.myMap.hasOpenNode()) {
+			
+			
+			
+			
+			
+			
+			
 			
 			ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 			msg.setProtocol("SHARE-TOPO");

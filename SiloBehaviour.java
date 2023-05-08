@@ -278,7 +278,7 @@ public class SiloBehaviour extends SimpleBehaviour {
 				for(int i=0;i<this.talking.size();i++) {
 					
 					this.cpt.set(i, this.cpt.get(i)+1);
-					if(this.cpt.get(i)>10) {
+					if(this.cpt.get(i)>30) {
 						this.talking.remove(i);
 						this.cpt.remove(i);
 					}
